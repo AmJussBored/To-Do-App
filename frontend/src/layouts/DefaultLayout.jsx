@@ -37,7 +37,7 @@ const DefaultLayout = () => {
                         </a>
                     </div>
                 </header>
-                <main className="place-items-center">
+                <main className="flex p-4" >
 
                     <Outlet />
                 </main>

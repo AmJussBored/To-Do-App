@@ -4,6 +4,7 @@ import axiosClient from "../axios-client";
 import TaskList from "../components/TodoList";
 import Popup from "../components/Popup";
 import Edit from "../components/Edit";
+import DeleteModal from "../components/DeleteModal";
 
 const Todos = () => {
     const [todos, setTodos] = useState([]);
@@ -12,7 +13,8 @@ const Todos = () => {
     const [editTask, setEditTask] = useState();
     const [loading, setLoading] = useState(false);
     const { setNotification } = useStateContext();
-
+    const [deleteModal, setDeleteModal] = useState(false);
+    const [deleteTodo, setDeleteTodo] = useState('');
 
     useEffect(() => {
         getTodos();
@@ -35,18 +37,18 @@ const Todos = () => {
     const onAddTodo = (payload) => {
         //event.preventDefault();
 
-        axiosClient.post('/todos', payload)
-        .then((data) => {
-            getTodos();
-            setAddPopup(!addPopup);
-            setNotification(data.data.message);
-
-        })
-        .catch(err => {
-            const response = err.response;
-            console.log(response);
-        })
-    }
+        axiosClient
+            .post("/todos", payload)
+            .then((data) => {
+                getTodos();
+                setAddPopup(!addPopup);
+                setNotification(data.data.message);
+            })
+            .catch((err) => {
+                const response = err.response;
+                console.log(response);
+            });
+    };
 
     const toggleAddPopup = (e) => {
         e.preventDefault();
@@ -62,46 +64,77 @@ const Todos = () => {
     };
 
     const onUpdateTodo = (payload) => {
+        axiosClient
+            .put(`/todos/${payload.id}`, payload)
+            .then((data) => {
+                console.log(data);
+                getTodos();
+                setNotification(data.data.message);
+            })
+            .catch((err) => {
+                const response = err.response;
+                console.log(response);
+            });
+    };
 
-        axiosClient.put(`/todos/${payload.id}`, payload)
-        .then((data) => {
-            console.log(data)
-            getTodos();
-            setNotification(data.data.message);
-
-        })
-        .catch(err => {
-            const response = err.response;
-            console.log(response);
-        })
-
-    }
+    const deleteToggle = ( user) => {
+        //event.preventDefault();
+        setDeleteTodo(user);
+        setDeleteModal(!deleteModal);
+    };
 
     return (
-        <div className="w-5/6">
-            <a href="" className="text-2xl active:text-xl" onClick={toggleAddPopup}>
+        <div className="w-5/6 mx-auto flex flex-col">
+            <a
+                href=""
+                className="text-2xl active:text-xl ml-auto"
+                onClick={toggleAddPopup}
+            >
                 <i className="ri-add-box-line"></i>
             </a>
             {/*------Add Popup--------*/}
             {addPopup && (
-                <Popup popupFunction={toggleAddPopup} submitFunction={onAddTodo}></Popup>
+                <Popup
+                    popupFunction={toggleAddPopup}
+                    submitFunction={onAddTodo}
+                ></Popup>
             )}
 
             {/*-----Task List Loop---------*/}
             <div className="p-3 border-4 overflow-y-auto overflow-x-hidden border-black  rounded-md">
-                {
-                    loading ? <h2 className="text-center text-xl bg-gray-200 rounded-md drop-shadow p-1">Loading..</h2> :
-                    todos && todos.length > 0 ? (
-                        todos.map((task) => (
-                            <TaskList key={task.id} task={task} getTodos={getTodos} toggleEditPopup={toggleEditPopup}></TaskList>
-                        ))
-                        ) : (
-                        <h2 className="text-center text-xl bg-gray-200 rounded-sm drop-shadow p-1">No to do items yet <i className="ri-file-list-line"></i></h2>
-                    )
-                }
-
+                {loading ? (
+                    <h2 className="text-center text-xl bg-gray-200 rounded-md drop-shadow p-1">
+                        Loading..
+                    </h2>
+                ) : todos && todos.length > 0 ? (
+                    todos.map((task) => (
+                        <TaskList
+                            key={task.id}
+                            task={task}
+                            deleteFunction={deleteToggle}
+                            toggleEditPopup={toggleEditPopup}
+                        ></TaskList>
+                    ))
+                ) : (
+                    <h2 className="text-center text-xl bg-gray-200 rounded-sm drop-shadow p-1">
+                        No to do items yet <i className="ri-file-list-line"></i>
+                    </h2>
+                )}
+                {deleteModal && (
+                    <DeleteModal
+                        deleteFunction={deleteToggle}
+                        getTodos={getTodos}
+                        todo_id={deleteTodo}
+                    />
+                )}
                 {/*------Edit Popup--------*/}
-                {editPopup && <Edit popupFunction={toggleEditPopup} submitFunction={onUpdateTodo} task={editTask}></Edit>}
+                {editPopup && (
+                    <Edit
+                        popupFunction={toggleEditPopup}
+                        submitFunction={onUpdateTodo}
+                        task={editTask}
+                    ></Edit>
+                )}
             </div>
         </div>
     );
