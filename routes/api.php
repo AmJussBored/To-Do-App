@@ -28,10 +28,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/todos/markFinished/{id}', [TodoController::class, 'markFinished']);
 
-    //Route::get();
-
-    //Route::get('/todos');
-
 
 });
 
